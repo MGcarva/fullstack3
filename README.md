@@ -40,20 +40,35 @@ Fullstack3-SpringBoot/
         │   ├── controller/
         │   │   ├── ProductoController.java  # Endpoints REST (equivalente a views.py)
         │   │   ├── CategoriaController.java
-        │   │   └── HealthController.java
+        │   │   ├── HealthController.java
+        │   │   ├── UsuarioController.java
+        │   │   ├── InventarioController.java
+        │   │   └── PedidoController.java
         │   ├── dto/
         │   │   ├── ProductoDTO.java         # Respuesta (equivalente a serializers.py)
         │   │   ├── ProductoCreateDTO.java
-        │   │   └── CategoriaDTO.java
+        │   │   ├── CategoriaDTO.java
+        │   │   ├── UsuarioDTO.java (y UsuarioCreateDTO.java)
+        │   │   ├── InventarioDTO.java
+        │   │   └── PedidoDTO.java (y PedidoCreateDTO.java)
         │   ├── model/
         │   │   ├── Producto.java            # Entidad JPA (equivalente a models.py)
-        │   │   └── Categoria.java
+        │   │   ├── Categoria.java
+        │   │   ├── Usuario.java
+        │   │   ├── Inventario.java
+        │   │   └── Pedido.java
         │   ├── repository/
         │   │   ├── ProductoRepository.java  # Acceso a datos (Spring Data)
-        │   │   └── CategoriaRepository.java
+        │   │   ├── CategoriaRepository.java
+        │   │   ├── UsuarioRepository.java
+        │   │   ├── InventarioRepository.java
+        │   │   └── PedidoRepository.java
         │   └── service/
         │       ├── ProductoService.java     # Lógica de negocio
-        │       └── CategoriaService.java
+        │       ├── CategoriaService.java
+        │       ├── UsuarioService.java
+        │       ├── InventarioService.java
+        │       └── PedidoService.java
         └── resources/
             └── application.properties       # Configuración (equivalente a settings.py)
 ```
@@ -70,6 +85,14 @@ Fullstack3-SpringBoot/
 | GET    | `/api/categorias`     | Lista todas las categorías      |
 | POST   | `/api/categorias`     | Crea una nueva categoría        |
 | GET    | `/api/health`         | Estado del microservicio        |
+| GET    | `/api/usuarios`       | Lista todos los usuarios        |
+| POST   | `/api/usuarios`       | Crea un nuevo usuario           |
+| GET    | `/api/usuarios/{id}`  | Detalle de un usuario           |
+| DELETE | `/api/usuarios/{id}`  | Elimina un usuario              |
+| GET    | `/api/inventarios`    | Lista todo el inventario        |
+| PUT    | `/api/inventarios/producto/{id}`| Actualiza stock de un producto |
+| GET    | `/api/pedidos`        | Lista todos los pedidos         |
+| POST   | `/api/pedidos`        | Crea un nuevo pedido            |
 
 ## 5. Cómo Ejecutar
 
@@ -90,6 +113,9 @@ mvn spring-boot:run
 #    http://localhost:8000/api/productos
 #    http://localhost:8000/api/categorias
 #    http://localhost:8000/api/health
+#    http://localhost:8000/api/usuarios
+#    http://localhost:8000/api/inventarios
+#    http://localhost:8000/api/pedidos
 
 # 4. Swagger UI (documentación interactiva):
 #    http://localhost:8000/api/swagger-ui.html
@@ -120,6 +146,25 @@ curl -X POST http://localhost:8000/api/productos \
     "imagenUrl": "https://ejemplo.com/teclado.jpg"
   }'
 ```
+### Crear un usuario
+```bash
+curl -X POST http://localhost:8000/api/usuarios \
+  -H "Content-Type: application/json" \
+  -d '{
+    "nombre": "Ana López",
+    "email": "ana.lopez@ejemplo.com",
+    "direccion": "Avenida Siempre Viva 742",
+    "telefono": "+56911223344"
+  }'
+
+curl http://localhost:8000/api/inventarios
+
+curl -X POST http://localhost:8000/api/pedidos \
+  -H "Content-Type: application/json" \
+  -d '{
+    "usuarioId": 1,
+    "total": 45990.0
+  }'
 
 ## 7. Comparativa Django vs Spring Boot
 

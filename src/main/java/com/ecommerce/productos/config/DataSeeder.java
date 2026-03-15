@@ -1,9 +1,16 @@
 package com.ecommerce.productos.config;
 
 import com.ecommerce.productos.model.Categoria;
+import com.ecommerce.productos.model.Inventario;
+import com.ecommerce.productos.model.Pedido;
 import com.ecommerce.productos.model.Producto;
+import com.ecommerce.productos.model.Usuario;
 import com.ecommerce.productos.repository.CategoriaRepository;
+import com.ecommerce.productos.repository.InventarioRepository;
+import com.ecommerce.productos.repository.PedidoRepository;
 import com.ecommerce.productos.repository.ProductoRepository;
+import com.ecommerce.productos.repository.UsuarioRepository;
+
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.boot.CommandLineRunner;
@@ -23,7 +30,9 @@ public class DataSeeder implements CommandLineRunner {
 
     private final CategoriaRepository categoriaRepository;
     private final ProductoRepository productoRepository;
-
+    private final UsuarioRepository usuarioRepository;
+    private final InventarioRepository inventarioRepository;
+    private final PedidoRepository pedidoRepository;
     @Override
     public void run(String... args) {
         if (categoriaRepository.count() > 0) {
@@ -74,10 +83,33 @@ public class DataSeeder implements CommandLineRunner {
                 "Balón oficial de fútbol profesional",
                 new BigDecimal("45990"), 0, deportes, false,
                 "https://ejemplo.com/balon.jpg");
+        // ── AGREGAR ESTO JUSTO DESPUÉS DE CREAR LOS PRODUCTOS ──
 
+        log.info("Cargando nuevos datos (Usuarios, Inventarios, Pedidos)...");
+
+        // 1. Crear usuarios de prueba
+        Usuario usuario1 = crearUsuario("Juan Pérez", "juan@ejemplo.com", "Av. Libertador 123, Santiago", "+56912345678");
+        Usuario usuario2 = crearUsuario("María Gómez", "maria@ejemplo.com", "Calle Falsa 456, Valparaíso", "+56987654321");
+
+        // 2. Generar Inventario dinámico
+        // Buscamos todos los productos que tu código anterior acaba de crear en la base de datos
+        productoRepository.findAll().forEach(producto -> {
+            // Por cada producto, le creamos un registro en la tabla de inventario
+            // Usamos el mismo stock que le pusiste al producto originalmente para mantener consistencia
+            crearInventario(producto.getId(), producto.getStock(), "Bodega Principal");
+        });
+
+        // 3. Crear Pedidos de prueba asociados a los usuarios
+        // Simulamos que el usuario 1 compró algo de 150.000 y ya lo pagó
+        crearPedido(usuario1, 150000.0, "PAGADO");
+        // Simulamos que el usuario 2 tiene un pedido pendiente de 29.990
+        crearPedido(usuario2, 29990.0, "PENDIENTE");
         log.info("===================================================");
         log.info("Total categorías: {}", categoriaRepository.count());
         log.info("Total productos:  {}", productoRepository.count());
+        log.info("Total usuarios:    {}", usuarioRepository.count());
+        log.info("Total inventarios: {}", inventarioRepository.count());
+        log.info("Total pedidos:     {}", pedidoRepository.count());
         log.info("===================================================");
         log.info("¡Datos de ejemplo cargados exitosamente!");
     }
@@ -106,5 +138,52 @@ public class DataSeeder implements CommandLineRunner {
                 .build();
         productoRepository.save(prod);
         log.info("  ✓ Producto creado: {} - ${}", nombre, precio);
+    }
+    // --- AGREGAR ESTOS MÉTODOS AL FINAL DE LA CLASE ---
+
+    /**
+     * Crea y guarda un Usuario en la base de datos.
+     * Instancia la entidad usando setters tradicionales.
+     */
+    private Usuario crearUsuario(String nombre, String email, String direccion, String telefono) {
+        Usuario usuario = new Usuario();
+        usuario.setNombre(nombre);
+        usuario.setEmail(email);
+        usuario.setDireccion(direccion);
+        usuario.setTelefono(telefono);
+        
+        Usuario guardado = usuarioRepository.save(usuario);
+        log.info("  ✓ Usuario creado: {}", nombre);
+        return guardado;
+    }
+
+    /**
+     * Crea y guarda un registro de Inventario vinculado lógicamente a un Producto.
+     * Usa LocalDateTime.now() para registrar el momento exacto de la creación.
+     */
+    private void crearInventario(Long productoId, Integer cantidad, String ubicacion) {
+        Inventario inventario = new Inventario();
+        inventario.setProductoId(productoId);
+        inventario.setCantidadDisponible(cantidad);
+        inventario.setUbicacion(ubicacion);
+        inventario.setUltimaActualizacion(java.time.LocalDateTime.now());
+        
+        inventarioRepository.save(inventario);
+        log.info("  ✓ Inventario creado para Producto ID: {} con {} unidades", productoId, cantidad);
+    }
+
+    /**
+     * Crea y guarda un Pedido asignado a un Usuario específico.
+     * Mapea el total y el estado de la compra.
+     */
+    private void crearPedido(Usuario usuario, Double total, String estado) {
+        Pedido pedido = new Pedido();
+        pedido.setUsuario(usuario);
+        pedido.setTotal(total);
+        pedido.setEstado(estado);
+        pedido.setFechaPedido(java.time.LocalDateTime.now());
+        
+        pedidoRepository.save(pedido);
+        log.info("  ✓ Pedido creado para {}: Total ${} - Estado: {}", usuario.getNombre(), total, estado);
     }
 }
