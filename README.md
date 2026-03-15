@@ -156,16 +156,20 @@ curl -X POST http://localhost:8000/api/usuarios \
     "direccion": "Avenida Siempre Viva 742",
     "telefono": "+56911223344"
   }'
-
-curl http://localhost:8000/api/inventarios
-
+```
+### Actualizar o inicializar stock (Inventario)
+```bash
+curl -X PUT "http://localhost:8000/api/inventarios/producto/1?cantidad=150"
+```
+### Crear un pedido
+```bash
 curl -X POST http://localhost:8000/api/pedidos \
   -H "Content-Type: application/json" \
   -d '{
     "usuarioId": 1,
     "total": 45990.0
   }'
-
+```
 ## 7. Comparativa Django vs Spring Boot
 
 | Concepto               | Django (Python)              | Spring Boot (Java)                |
