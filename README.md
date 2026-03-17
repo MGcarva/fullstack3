@@ -184,3 +184,36 @@ curl -X POST http://localhost:8000/api/pedidos \
 | Datos iniciales        | `seed_data.py`               | `DataSeeder.java` (CommandLineRunner)|
 | Configuración          | `settings.py`                | `application.properties`          |
 | Dependencias           | `requirements.txt` + pip     | `pom.xml` + Maven                 |
+## 8. Despliegue con Docker
+
+Este microservicio está preparado para ser contenerizado utilizando Docker, lo que garantiza su portabilidad, escalabilidad y un despliegue eficiente en entornos productivos.
+
+### Configuración del Dockerfile (Multi-stage Build)
+Se implementó un archivo `Dockerfile` utilizando una estrategia de **múltiples etapas** (multi-stage build) para optimizar el peso y la seguridad de la imagen final:
+1. **Etapa de Construcción (Build):** Utiliza una imagen oficial de Maven con JDK 17. Se encarga de descargar las dependencias y compilar el código fuente, generando el archivo ejecutable `.jar` sin necesidad de tener Maven instalado localmente.
+2. **Etapa de Ejecución (Run):** Utiliza una imagen base ultraligera de Java 17 (`eclipse-temurin:17-jre-alpine`). Recupera exclusivamente el `.jar` compilado de la etapa anterior, desechando el código fuente y las herramientas de construcción para crear un contenedor altamente eficiente.
+
+Adicionalmente, el archivo `application.properties` fue adaptado para inyectar configuraciones mediante **variables de entorno** (por ejemplo, `server.port=${SERVER_PORT:8000}`). Esto permite modificar puertos y credenciales de bases de datos de forma dinámica al momento de correr el contenedor, sin alterar el código fuente.
+
+### Comandos de Ejecución
+
+**1. Construir la imagen:**
+Ubicado en la raíz del proyecto (donde se encuentra el `Dockerfile`), ejecuta el siguiente comando para crear la imagen de Docker:
+```bash
+docker build -t mi-api-productos .
+```
+**2. Ejecutar el contenedor:**
+Una vez construida la imagen, levanta el contenedor en segundo plano (-d), mapeando el puerto 8000 hacia tu máquina local y asignándole un nombre identificable:
+
+```bash
+docker run -d -p 8000:8000 --name mi-contenedor-api mi-api-productos
+```
+(Nota: Es posible inyectar variables de entorno en este paso agregando flags, por ejemplo: -e SERVER_PORT=9090 -e DB_USER=admin).
+
+**3. Verificar la ejecución:**
+Para comprobar que el contenedor está activo y funcionando correctamente, utiliza el comando:
+
+```Bash
+docker ps
+```
+Una vez levantado, la API estará lista para recibir peticiones a través de http://localhost:8000/api/productos.
